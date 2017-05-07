@@ -1,38 +1,22 @@
-package com.NoSuchCompany.app;
+/**
+ * @file CarPlaylistCreatorTest.java
+ * @brief Tests for CarPlaylistCreator class.
+ */
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+package com.NoSuchCompany.CarPlaylistCreator;
+
+import org.junit.Test;
 
 /**
  * Unit test for CarPlaylistCreator.
  */
 public class CarPlaylistCreatorTest
-    extends TestCase
 {
-  /**
-   * Create the test case
-   *
-   * @param testName name of the test case
-   */
-  public CarPlaylistCreatorTest( String testName )
-  {
-    super( testName );
-  }
-
-  /**
-   * @return the suite of tests being tested
-   */
-  public static Test suite()
-  {
-    return new TestSuite( CarPlaylistCreatorTest.class );
-  }
-
   /**
    * Rigourous Test :-)
    */
+  @Test
   public void testCarPlaylistCreator()
   {
-    assertTrue( true );
   }
 }
