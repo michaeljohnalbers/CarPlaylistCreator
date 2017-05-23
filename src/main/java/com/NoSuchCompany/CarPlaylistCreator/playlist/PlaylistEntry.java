@@ -5,6 +5,8 @@
 
 package com.NoSuchCompany.CarPlaylistCreator.playlist;
 
+import java.io.File;
+
 /**
  * Manages a single M3U playlist entry. Based off the wikipedia page:
  * https://en.wikipedia.org/wiki/M3U.
@@ -45,6 +47,16 @@ public class PlaylistEntry {
    */
   public String getTrackLocation() {
     return trackLocation_;
+  }
+
+  /**
+   * Returns the file name of the playlist item. Implemented this way primarily
+   * for ui.Playlists.java.
+   * @return file name of track
+   */
+  @Override
+  public String toString() {
+    return new File(getTrackLocation()).getName();
   }
 
   /** Extended playlist directive. */

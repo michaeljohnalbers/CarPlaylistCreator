@@ -5,6 +5,7 @@
 
 package com.NoSuchCompany.CarPlaylistCreator.playlist;
 
+import java.io.File;
 import java.util.Set;
 import java.util.HashSet;
 import static org.junit.Assert.*;
@@ -28,6 +29,9 @@ public class PlaylistEntryTest
     assertTrue(entry.getTrackLocation(), 
                trackLocation.equals(entry.getTrackLocation()));
     assertTrue(new Long(entry.getId()).toString(), entry.getId() > 0);
+
+    assertTrue(entry.toString(),
+               (new File(trackLocation)).getName().equals(entry.toString()));
 
     // Verify id's aren't reused.
     Set<Long> ids = new HashSet<>();

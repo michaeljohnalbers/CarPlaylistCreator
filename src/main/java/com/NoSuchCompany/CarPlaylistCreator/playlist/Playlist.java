@@ -73,6 +73,16 @@ public class Playlist {
   }
 
   /**
+   * Returns the filename of the playlist. Implemented this way for use in
+   * the playlist combo box in ui.Playlists.java.
+   * @return playlist file name
+   */
+  @Override
+  public String toString() {
+    return playlistFile_.toFile().getName();
+  }
+
+  /**
    * Writes the playlist back to the original file.
    * @throws IOException on any error writing the file.
    */

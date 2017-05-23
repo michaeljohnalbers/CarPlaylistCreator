@@ -15,8 +15,23 @@ import javax.swing.tree.TreeModel;
  */
 public class FileTreeModel implements TreeModel {
 
+  /**
+   * Custom class to override toString so only names, and not full names,
+   * are printed in the tree.
+   */
+  private class FileNode extends File{
+    public FileNode(File file) {
+      super(file.getPath());
+    }
+    
+    @Override
+    public String toString() {
+      return getName();
+    }
+  }
+
   public FileTreeModel(File root) {
-    root_ = root;
+    root_ = new FileNode(root);
   }
 
   @Override
@@ -26,25 +41,25 @@ public class FileTreeModel implements TreeModel {
 
   @Override
   public Object getChild(Object parent, int index) {
-    File f = (File) parent;
-    return f.listFiles()[index];
+    FileNode f = (FileNode) parent;
+    return new FileNode(f.listFiles(filter_)[index]);
   }
 
   @Override
   public int getChildCount(Object parent) {
-    File f = (File) parent;
+    FileNode f = (FileNode) parent;
     if (!f.isDirectory()) {
       return 0;
     } else {
-      return f.list().length;
+      return f.listFiles(filter_).length;
     }
   }
 
   @Override
   public int getIndexOfChild(Object parent, Object child) {
-    File par = (File) parent;
-    File ch = (File) child;
-    return Arrays.asList(par.listFiles()).indexOf(ch);
+    FileNode par = (FileNode) parent;
+    FileNode ch = (FileNode) child;
+    return Arrays.asList(par.listFiles(filter_)).indexOf(ch);
   }
 
   @Override
@@ -54,7 +69,7 @@ public class FileTreeModel implements TreeModel {
 
   @Override
   public boolean isLeaf(Object node) {
-    File f = (File) node;
+    FileNode f = new FileNode((File) node);
     return !f.isDirectory();
   }
 
@@ -64,11 +79,16 @@ public class FileTreeModel implements TreeModel {
   }
 
   @Override
-  public void valueForPathChanged(javax.swing.tree.TreePath path, Object newValue) {
+  public void valueForPathChanged(javax.swing.tree.TreePath path, 
+                                  Object newValue) {
     //do nothing
   }
 
   /** Root of file tree. */
-  private File root_;
+  private FileNode root_;
 
+  /** File filter to only display directories and music files. */
+  final java.io.FileFilter filter_ = (file) -> {
+    return file.isDirectory() || file.getName().matches("^.*mp3");
+  };
 }

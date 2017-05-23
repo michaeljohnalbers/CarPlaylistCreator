@@ -16,10 +16,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 
-import javax.swing.BorderFactory; // TODO: remove
-import java.awt.Color;
-
 /**
+ * Class to create the main window for the GUI. This houses all of the component
+ * widgets as well.
  */
 public class MainWindow extends JFrame {
 
@@ -36,15 +35,10 @@ public class MainWindow extends JFrame {
     add(panel);
     panel.setLayout(new GridBagLayout());
 
-    GridBagConstraints constraints = new GridBagConstraints();
-    constraints.fill = GridBagConstraints.HORIZONTAL;
-    constraints.gridwidth = 2;
-    constraints.gridx = 0;
-    constraints.gridy = 0;
-    constraints.weighty = 0.0;
-    panel.add(new RootDirectoryPanel(), constraints);
+    GridBagConstraints constraints = null;
 
     MusicDirectoryTree mdt = new MusicDirectoryTree();
+    constraints = new GridBagConstraints();
     constraints.fill = GridBagConstraints.BOTH;
     constraints.gridwidth = 1;
     constraints.gridx = 0;
@@ -54,6 +48,7 @@ public class MainWindow extends JFrame {
     panel.add(mdt, constraints);
 
     Playlists playlists = new Playlists();
+    constraints = new GridBagConstraints();
     constraints.fill = GridBagConstraints.BOTH;
     constraints.gridx = 1;
     constraints.gridy = 1;
@@ -61,13 +56,13 @@ public class MainWindow extends JFrame {
     constraints.weighty = 1.0;
     panel.add(playlists, constraints);
 
-    // TODO: remove
-    mdt.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.red),
-        mdt.getBorder()));
-    playlists.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.blue),
-        playlists.getBorder()));
+    constraints = new GridBagConstraints();
+    constraints.fill = GridBagConstraints.HORIZONTAL;
+    constraints.gridwidth = 2;
+    constraints.gridx = 0;
+    constraints.gridy = 0;
+    constraints.weighty = 0.0;
+    panel.add(new RootDirectoryPanel(mdt, playlists), constraints);
 
     pack();
     setVisible(true);

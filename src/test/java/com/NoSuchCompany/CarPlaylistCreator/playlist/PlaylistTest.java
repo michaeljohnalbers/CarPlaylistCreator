@@ -59,6 +59,9 @@ public class PlaylistTest
       String error = "Line " + ii + ": " + lines.get(ii);
       assertTrue(error, lines.get(ii).equals(readLines.get(ii)));
     }
+
+    assertTrue(playlist.toString(), 
+               playlist.toString().equals(file.toFile().getName()));
   }
 
   @AfterClass
