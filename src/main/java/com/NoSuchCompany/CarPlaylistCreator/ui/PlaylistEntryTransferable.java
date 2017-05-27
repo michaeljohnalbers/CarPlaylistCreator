@@ -8,6 +8,7 @@ package com.NoSuchCompany.CarPlaylistCreator.ui;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.util.List;
 
 import com.NoSuchCompany.CarPlaylistCreator.playlist.PlaylistEntry;
 
@@ -15,7 +16,7 @@ import com.NoSuchCompany.CarPlaylistCreator.playlist.PlaylistEntry;
  * This class is a custom Transferable class used to drag/drop playlist entries.
  */
 public class PlaylistEntryTransferable implements Transferable {
-  public PlaylistEntryTransferable(PlaylistEntry... entries) {
+  public PlaylistEntryTransferable(List<PlaylistEntry> entries) {
     entries_ = entries;
   }
 
@@ -54,6 +55,6 @@ public class PlaylistEntryTransferable implements Transferable {
       new DataFlavor(PlaylistEntry.class, "PlaylistEntry");
 
   /** Playlist entry/ies to transfer. */
-  private PlaylistEntry entries_[];
+  private List<PlaylistEntry> entries_;
 }
 

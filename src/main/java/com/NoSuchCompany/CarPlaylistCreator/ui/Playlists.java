@@ -45,7 +45,6 @@ public class Playlists extends JPanel
 
     // TODO: see http://stackoverflow.com/questions/9370326/default-action-button-icons-in-java for Java icons
     // See also: https://jar-download.com/?detail_search=a%25253A%252522jlfgr%252522&search_type=2&a=jlfgr
-    // https://stackoverflow.com/questions/15990258/maven-cant-execute-jar
 
     // DnD
     // https://docs.oracle.com/javase/tutorial/uiswing/dnd/intro.html
@@ -70,11 +69,10 @@ public class Playlists extends JPanel
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         protected Transferable createTransferable(JComponent c) {
-          JList list = (JList)c;
-          Object[] values = list.getSelectedValues();
-          PlaylistEntry[] entries = Arrays.copyOf(values, values.length,
-                                                  PlaylistEntry[].class);
+          JList<PlaylistEntry> list = (JList<PlaylistEntry>)c;
+          List<PlaylistEntry> entries = list.getSelectedValuesList();
 
           PlaylistEntryTransferable transferable = 
               new PlaylistEntryTransferable(entries);
@@ -87,12 +85,13 @@ public class Playlists extends JPanel
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void exportDone(JComponent c, Transferable t, int action) {
           if (MOVE == action) {
             try {
               Object data = t.getTransferData(
                   PlaylistEntryTransferable.getSupportedFlavor());
-              PlaylistEntry entries[] = (PlaylistEntry[]) data;
+              List<PlaylistEntry> entries = (List<PlaylistEntry>) data;
               
               for (PlaylistEntry entry : entries) {
                 playlistEntriesModel_.removeElement(entry);
@@ -106,6 +105,7 @@ public class Playlists extends JPanel
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public boolean importData(TransferHandler.TransferSupport info) {
           if (!info.isDrop()) {
             return false;
@@ -131,10 +131,21 @@ public class Playlists extends JPanel
             // PlaylistEntryTransferable (though I suspect it contains one).
             Transferable t = info.getTransferable();
             Object data = t.getTransferData(playlistEntryFlavor);
-            PlaylistEntry entries[] = (PlaylistEntry[]) data;
-
+            List<PlaylistEntry> entries = (List<PlaylistEntry>) data;
+            
+            // Without this offset, multiple items in a single drag are added in
+            // reverse order
+            int indexOffset = 0;
             for (PlaylistEntry entry : entries) {
-              playlistEntriesModel_.add(index, entry);
+              // A new entry is created so that it gets a new ID. The primary
+              // purpose for this is to allow the exportDone function to work
+              // properly. If a new entry wasn't used, an entry couldn't be
+              // moved up the list as it would be the first one found by
+              // removeElement.
+              PlaylistEntry newEntry = new PlaylistEntry(
+                  entry.getCommentLine(), entry.getTrackLocation());
+              playlistEntriesModel_.add(index + indexOffset, newEntry);
+              indexOffset++;
             }
 
             // TODO: update playlist object, mark it as needing save

@@ -19,9 +19,13 @@ public class FileTreeModel implements TreeModel {
    * Custom class to override toString so only names, and not full names,
    * are printed in the tree.
    */
-  private class FileNode extends File{
+  public class FileNode extends File {
     public FileNode(File file) {
       super(file.getPath());
+    }
+
+    public boolean isLeaf() {
+      return !isDirectory();
     }
     
     @Override
@@ -70,7 +74,7 @@ public class FileTreeModel implements TreeModel {
   @Override
   public boolean isLeaf(Object node) {
     FileNode f = new FileNode((File) node);
-    return !f.isDirectory();
+    return f.isLeaf();
   }
 
   @Override
