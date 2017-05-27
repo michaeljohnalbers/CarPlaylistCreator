@@ -42,5 +42,12 @@ public class PlaylistEntryTest
       assertFalse(new Long(id).toString(), ids.contains(id));
       ids.add(id);
     }
+
+    // Test equals
+    assertTrue(entry.equals(entry));
+    PlaylistEntry entry2 = new PlaylistEntry(comment, trackLocation);
+    assertFalse(entry2.equals(entry));
+    assertFalse(entry.equals(entry2));
+    assertFalse(entry.equals(null));
   }
 }

@@ -38,6 +38,7 @@ class MusicDirectoryTree extends JPanel implements DirectoryChangeListener {
 
       // TODO: may need to make into a SwingWorker
       JTree directoryTree = new JTree(new FileTreeModel(musicPath.toFile()));
+      directoryTree.setDragEnabled(true);
       JScrollPane treeView = new JScrollPane(directoryTree);
 
       GridBagConstraints constraints = new GridBagConstraints();

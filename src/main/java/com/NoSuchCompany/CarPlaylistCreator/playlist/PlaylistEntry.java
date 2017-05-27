@@ -25,6 +25,16 @@ public class PlaylistEntry {
     id_ = ++idGenerator;
   }
 
+  @Override
+  public boolean equals(Object e) {
+    boolean equal = false;
+    if (null != e && e instanceof PlaylistEntry) {
+      PlaylistEntry entry = (PlaylistEntry) e;
+      equal = (entry.getId() == getId());
+    }
+    return equal;
+  }
+
   /**
    * Returns the comment line.
    * @return comment line

@@ -5,6 +5,10 @@
 
 package com.NoSuchCompany.CarPlaylistCreator.ui;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -13,20 +17,24 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
-import javax.swing.DefaultListModel;
+import javax.swing.TransferHandler;
 
 import com.NoSuchCompany.CarPlaylistCreator.playlist.Playlist;
 import com.NoSuchCompany.CarPlaylistCreator.playlist.PlaylistEntry;
 
-public class Playlists extends JPanel 
+public class Playlists extends JPanel
     implements DirectoryChangeListener, ActionListener {
   /**
    * Constructor.
@@ -39,8 +47,111 @@ public class Playlists extends JPanel
     // See also: https://jar-download.com/?detail_search=a%25253A%252522jlfgr%252522&search_type=2&a=jlfgr
     // https://stackoverflow.com/questions/15990258/maven-cant-execute-jar
 
+    // DnD
+    // https://docs.oracle.com/javase/tutorial/uiswing/dnd/intro.html
+    // https://docs.oracle.com/javase/tutorial/uiswing/examples/dnd/BasicDnDProject/src/dnd/BasicDnD.java
+
     playlistSelector_.addActionListener(this);
     playlistSelector_.setActionCommand(PLAYLIST_SELECTED);
+
+    playlistEntries_.setTransferHandler(new TransferHandler() {
+        @Override
+        public boolean canImport(TransferHandler.TransferSupport info) {
+          if (!info.isDataFlavorSupported(
+                  PlaylistEntryTransferable.getSupportedFlavor())) {
+            return false;
+          }
+
+          JList.DropLocation dl = (JList.DropLocation)info.getDropLocation();
+          if (dl.getIndex() == -1) {
+            return false;
+          }
+          return true;
+        }
+
+        @Override
+        protected Transferable createTransferable(JComponent c) {
+          JList list = (JList)c;
+          Object[] values = list.getSelectedValues();
+          PlaylistEntry[] entries = Arrays.copyOf(values, values.length,
+                                                  PlaylistEntry[].class);
+
+          PlaylistEntryTransferable transferable = 
+              new PlaylistEntryTransferable(entries);
+          return transferable;
+        }
+
+        @Override
+        public int getSourceActions(JComponent c) {
+          return MOVE;
+        }
+
+        @Override
+        public void exportDone(JComponent c, Transferable t, int action) {
+          if (MOVE == action) {
+            try {
+              Object data = t.getTransferData(
+                  PlaylistEntryTransferable.getSupportedFlavor());
+              PlaylistEntry entries[] = (PlaylistEntry[]) data;
+              
+              for (PlaylistEntry entry : entries) {
+                playlistEntriesModel_.removeElement(entry);
+              }
+            }
+            catch (UnsupportedFlavorException | IOException e) {
+              // TODO: more sophisticated error?
+              System.err.println("exportDone: " + e);
+            }
+          }
+        }
+
+        @Override
+        public boolean importData(TransferHandler.TransferSupport info) {
+          if (!info.isDrop()) {
+            return false;
+          }
+
+          DataFlavor playlistEntryFlavor = 
+              PlaylistEntryTransferable.getSupportedFlavor();
+
+          if (!info.isDataFlavorSupported(playlistEntryFlavor)) {
+            return false;
+          }
+
+          JList.DropLocation dl = (JList.DropLocation)info.getDropLocation();
+          int index = dl.getIndex();
+          // In case I change to add copy and forget to update this code.
+          if (! dl.isInsert()) {
+            return false;
+          }
+
+          try {
+            // This is actually a
+            // java.awt.dnd.DropTargetContext$TransferableProxy not a
+            // PlaylistEntryTransferable (though I suspect it contains one).
+            Transferable t = info.getTransferable();
+            Object data = t.getTransferData(playlistEntryFlavor);
+            PlaylistEntry entries[] = (PlaylistEntry[]) data;
+
+            for (PlaylistEntry entry : entries) {
+              playlistEntriesModel_.add(index, entry);
+            }
+
+            // TODO: update playlist object, mark it as needing save
+          } 
+          catch (ClassCastException e) {
+            // TODO: better error handler?
+            System.err.println(e);
+          }
+          catch (Exception e) {
+            return false;
+          }
+
+          return true;
+        }
+      });
+    playlistEntries_.setDropMode(DropMode.INSERT);
+    playlistEntries_.setDragEnabled(true);
 
     int column = 0;
 
@@ -118,7 +229,7 @@ public class Playlists extends JPanel
         break;
 
       default:
-        System.err.println("unhandled action in Playlists: " + 
+        System.err.println("unhandled action in Playlists: " +
                            e.getActionCommand());
     }
   }
@@ -143,7 +254,6 @@ public class Playlists extends JPanel
         });
       try {
         for (File playlist : playlists) {
-          System.out.println("adding playlist: " + playlist.toPath());
           playlistSelector_.addItem(new Playlist(playlist.toPath()));
         }
       } catch (IOException e) {
@@ -153,7 +263,7 @@ public class Playlists extends JPanel
     }
     else {
       // TODO: error
-      System.err.println("<No 'Playlists' directory found. " + 
+      System.err.println("<No 'Playlists' directory found. " +
                          "Select another root directory.>");
     }
   }
@@ -213,10 +323,10 @@ public class Playlists extends JPanel
   private JComboBox<Playlist> playlistSelector_ = new JComboBox<>();
 
   /** Model for playlist entries list. */
-  private DefaultListModel<PlaylistEntry> playlistEntriesModel_ = 
+  private DefaultListModel<PlaylistEntry> playlistEntriesModel_ =
       new DefaultListModel<>();
 
   /** List of all entries in a playlist. */
-  private JList<PlaylistEntry> playlistEntries_ = 
+  private JList<PlaylistEntry> playlistEntries_ =
       new JList<>(playlistEntriesModel_);
 }
