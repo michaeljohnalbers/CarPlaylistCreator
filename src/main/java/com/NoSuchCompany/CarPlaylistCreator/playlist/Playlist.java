@@ -15,7 +15,7 @@ import java.util.Vector;
 /**
  * Manages a single M3U playlist.
  */
-public class Playlist {
+public class Playlist implements Comparable<Playlist> {
 
   /**
    * Constructor.
@@ -26,6 +26,25 @@ public class Playlist {
   public Playlist(Path playlistFile) throws IOException{
     playlistFile_ = playlistFile;
     readPlaylist();
+  }
+
+  @Override
+  public int compareTo(Playlist other) {
+    int compare = 0;
+    if (other != null && other instanceof Playlist) {
+      Playlist otherPlaylist = (Playlist) other;
+      compare = playlistFile_.toString().compareToIgnoreCase(
+          otherPlaylist.playlistFile_.toString());
+    }
+    return compare;
+  }
+
+  /**
+   * Deletes the playlist from disk. Calling this if the playlist does not
+   * exist does nothing.
+   */
+  public void delete() {
+    playlistFile_.toFile().delete();
   }
 
   /**
@@ -41,35 +60,40 @@ public class Playlist {
    * @throws IOException on any error reading the file
    */
   private void readPlaylist() throws IOException{
-    Scanner playlistReader = new Scanner(playlistFile_);
+    if (playlistFile_.toFile().exists()) {
+      Scanner playlistReader = new Scanner(playlistFile_);
 
-    String trackDirective = null;
+      String trackDirective = null;
 
-    while (playlistReader.hasNextLine()){
-      String line = playlistReader.nextLine();
-      // TODO: add classes that will store empty lines and comments.
-      if (! line.matches("^[ 	]*$")) {
-        // This will ignore multiple header directives.
-        if (line.matches("^[ 	]*#EXTM3U.*$")) {
-          // Header directive. Ignore it.
-        }
-        else if (line.matches("^[ 	]*#EXTINF.*$")) {
-          trackDirective = line;
-        }
-        else if (line.matches("^[ 	]*[^#].*$")) {
-          // It's OK not to have a track directive.
-          if (null == trackDirective) {
-            trackDirective = "";
+      while (playlistReader.hasNextLine()){
+        String line = playlistReader.nextLine();
+        // TODO: add classes that will store empty lines and comments.
+        if (! line.matches("^[ 	]*$")) {
+          // This will ignore multiple header directives.
+          if (line.matches("^[ 	]*#EXTM3U.*$")) {
+            // Header directive. Ignore it.
           }
-          entries_.add(new PlaylistEntry(trackDirective, line));
-          trackDirective = null;
-        }
-        else {
-          // Line must start with a #, just a comment. Ignore it for the time
-          // being.
+          else if (line.matches("^[ 	]*#EXTINF.*$")) {
+            trackDirective = line;
+          }
+          else if (line.matches("^[ 	]*[^#].*$")) {
+            // It's OK not to have a track directive.
+            if (null == trackDirective) {
+              trackDirective = "";
+            }
+            entries_.add(new PlaylistEntry(trackDirective, line));
+            trackDirective = null;
+          }
+          else {
+            // Line must start with a #, just a comment. Ignore it for the time
+            // being.
+          }
         }
       }
-    }  
+    }
+    else {
+      // Playlist file doesn't exist, must be creating a new playlist.
+    }
   }
 
   /**
@@ -86,7 +110,7 @@ public class Playlist {
    * Writes the playlist back to the original file.
    * @throws IOException on any error writing the file.
    */
-  public void writePlaylist() throws IOException{
+  public void writePlaylist() throws IOException {
     List<String> playlistLines = new Vector<>();
     playlistLines.add("#EXTM3U");
     entries_.forEach((e) -> {
@@ -94,8 +118,7 @@ public class Playlist {
         playlistLines.add(e.getTrackLocation());
             });
     Files.write(playlistFile_, playlistLines);
-
-  };
+  }
 
   /** Location of the playlist file. */
   private Path playlistFile_;

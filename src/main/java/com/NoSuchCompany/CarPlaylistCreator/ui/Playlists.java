@@ -26,6 +26,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
@@ -183,24 +184,28 @@ public class Playlists extends JPanel
     // TODO: change letters to icons
 
     JButton saveButton = new JButton("S");
+    saveButton.setToolTipText("Save current playlist");
     saveButton.setActionCommand(SAVE_PLAYLIST);
     saveButton.addActionListener(this);
     constraints.gridx = column++;
     add(saveButton, constraints);
 
     JButton saveAllButton = new JButton("Sa");
+    saveAllButton.setToolTipText("Save all playlists");
     saveAllButton.setActionCommand(SAVE_ALL_PLAYLISTS);
     saveAllButton.addActionListener(this);
     constraints.gridx = column++;
     add(saveAllButton, constraints);
 
     JButton newButton = new JButton("N");
+    newButton.setToolTipText("Create a new playlist");
     newButton.setActionCommand(NEW_PLAYLIST);
     newButton.addActionListener(this);
     constraints.gridx = column++;
     add(newButton, constraints);
 
     JButton deleteButton = new JButton("D");
+    newButton.setToolTipText("Delete the selected playlist");
     deleteButton.setActionCommand(DELETE_PLAYLIST);
     deleteButton.addActionListener(this);
     constraints.gridx = column++;
@@ -246,27 +251,46 @@ public class Playlists extends JPanel
   }
 
   /**
+   * Adds a new playlist to the playlist selection widget. Keeps the playlists
+   * in sorted order.
+   *
+   * @param newPlaylist playlist to add
+   */
+  private void addPlaylist(Playlist newPlaylist) {
+    playlistSelector_.addItem(newPlaylist);
+    playlistSelector_.setSelectedItem(newPlaylist);
+  }
+
+  /**
    * Deletes the current playlist.
    */
   private void deletePlaylist() {
-    System.out.println("deletePlaylist stub");
+    int userSelection = JOptionPane.showConfirmDialog(
+        this, "Are you sure you want to delete the selected playlist?", 
+        "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+    if (JOptionPane.YES_OPTION == userSelection) {
+      Playlist playlist = (Playlist) playlistSelector_.getSelectedItem();
+      playlist.delete();
+      playlistSelector_.removeItem(playlist);
+    }
   }
 
   @Override
   public void directoryChanged(Path newDirectory) {
-    Path playlistPath = Paths.get(newDirectory.toString(), "Playlists");
+    playlistDirectory = Paths.get(newDirectory.toString(), "Playlists");
 
-    if (playlistPath.toFile().exists()) {
+    if (playlistDirectory.toFile().exists()) {
       // Clear out old playlists
       playlistSelector_.removeAllItems();
       playlistEntriesModel_.clear();
-      File[] playlists = playlistPath.toFile().listFiles((file)->{
+      File[] playlists = playlistDirectory.toFile().listFiles((file)->{
           return file.getName().matches("^.*m3u$");
         });
       try {
         for (File playlist : playlists) {
-          playlistSelector_.addItem(new Playlist(playlist.toPath()));
+          addPlaylist(new Playlist(playlist.toPath()));
         }
+        playlistSelector_.setSelectedIndex(0);
       } catch (IOException e) {
         // TODO: error
         System.err.println("Error creating Playlist: " + e);
@@ -283,7 +307,25 @@ public class Playlists extends JPanel
    * Creates a new, empty playlist.
    */
   private void newPlaylist() {
-    System.out.println("new playlist stub");
+    String playlistName = JOptionPane.showInputDialog(
+        this, "Enter playlist name (with or without .m3u extension):",
+        "New Playlist", JOptionPane.PLAIN_MESSAGE);
+    if (null != playlistName && playlistName.length() > 0) {
+      if (! playlistName.matches("^.*m3u$")) {
+        playlistName += ".m3u";
+      }
+
+      Path playlistPath = Paths.get(playlistDirectory.toString(), playlistName);
+
+      try {
+        addPlaylist(new Playlist(playlistPath));
+      }
+      catch (IOException e) {
+        // TODO: error
+        System.err.println("Error creating new playlist '" + playlistPath + 
+                           "': " + e);
+      }
+    }
   }
 
   /**
@@ -305,14 +347,35 @@ public class Playlists extends JPanel
    * Saves the current playlist to disk.
    */
   private void savePlaylist() {
-    System.out.println("save playlist stub");
+    Playlist selectedPlaylist = (Playlist) playlistSelector_.getSelectedItem();
+    writePlaylist(selectedPlaylist);
   }
 
   /**
    * Saves all current playlists to disk.
    */
   private void saveAllPlaylists() {
-    System.out.println("save all playlists stub");
+    int numberPlaylists = playlistSelector_.getItemCount();
+    for (int ii = 0; ii < numberPlaylists; ++ii) {
+      Playlist playlist = (Playlist) playlistSelector_.getItemAt(ii);
+      writePlaylist(playlist);
+    }
+  }
+
+  /**
+   * Writes the given playlist data to disk.
+   *
+   * @param playlist playlist to write
+   */
+  private void writePlaylist(Playlist playlist) {
+    // TODO: add dirty flag to Playlist, only save if dirty
+    try {
+      playlist.writePlaylist();
+    } 
+    catch (IOException e) {
+      // TODO: error
+      System.err.println("Failed to save playlist '" + playlist + "': " + e);
+    }
   }
 
   /** action command for 'delete' button. */
@@ -330,8 +393,12 @@ public class Playlists extends JPanel
   /** action command for saving the current playlist */
   private static final String SAVE_PLAYLIST = "save_playlist";
 
+  /** Directory where playlists are located. */
+  private Path playlistDirectory;
+
   /** Combo box for selecting playlists. */
-  private JComboBox<Playlist> playlistSelector_ = new JComboBox<>();
+  private JComboBox<Playlist> playlistSelector_ = new JComboBox<>(
+      new SortedComboBoxModel<>());
 
   /** Model for playlist entries list. */
   private DefaultListModel<PlaylistEntry> playlistEntriesModel_ =
