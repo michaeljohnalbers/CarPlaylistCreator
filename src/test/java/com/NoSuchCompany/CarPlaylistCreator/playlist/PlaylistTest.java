@@ -59,6 +59,13 @@ public class PlaylistTest
       String error = "Line " + ii + ": " + lines.get(ii);
       assertTrue(error, lines.get(ii).equals(readLines.get(ii)));
     }
+
+    assertTrue(playlist.toString(), 
+               playlist.toString().equals(file.toFile().getName()));
+
+    // Test that a non-existant playlist can be used (creating a new playlist).
+    // No assert*, just letting JUnit handle exception (which is a failure)
+    Playlist newPlaylist = new Playlist(Paths.get("/no/Such/playList.m3u"));
   }
 
   @AfterClass
