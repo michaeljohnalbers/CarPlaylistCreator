@@ -9,6 +9,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.KeyEvent;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -19,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
 import javax.swing.JButton;
@@ -29,6 +31,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.TransferHandler;
 
@@ -94,8 +97,12 @@ public class Playlists extends JPanel
                   PlaylistEntryTransferable.getSupportedFlavor());
               List<PlaylistEntry> entries = (List<PlaylistEntry>) data;
               
+              Playlist currentPlaylist = 
+                  (Playlist)playlistSelector_.getSelectedItem();
+
               for (PlaylistEntry entry : entries) {
                 playlistEntriesModel_.removeElement(entry);
+                currentPlaylist.remove(entry);
               }
             }
             catch (UnsupportedFlavorException | IOException e) {
@@ -143,10 +150,19 @@ public class Playlists extends JPanel
               // properly. If a new entry wasn't used, an entry couldn't be
               // moved up the list as it would be the first one found by
               // removeElement.
+              int adjustedIndex = index + indexOffset;
+
+              // Comment line is populated in MusicDirectoryTree.java.
               PlaylistEntry newEntry = new PlaylistEntry(
                   entry.getCommentLine(), entry.getTrackLocation());
-              playlistEntriesModel_.add(index + indexOffset, newEntry);
-              indexOffset++;
+
+              playlistEntriesModel_.add(adjustedIndex, newEntry);
+              
+              Playlist currentPlaylist = 
+                  (Playlist)playlistSelector_.getSelectedItem();
+              currentPlaylist.add(adjustedIndex, newEntry);
+
+             indexOffset++;
             }
 
             // TODO: update playlist object, mark it as needing save
@@ -164,6 +180,30 @@ public class Playlists extends JPanel
       });
     playlistEntries_.setDropMode(DropMode.INSERT);
     playlistEntries_.setDragEnabled(true);
+
+    final String deleteAction = "deleteEntry";
+    playlistEntries_.getInputMap().put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
+        deleteAction);
+    playlistEntries_.getInputMap().put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
+        deleteAction);
+    playlistEntries_.getActionMap().put(deleteAction, new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          List<PlaylistEntry> selectedEntries = 
+              playlistEntries_.getSelectedValuesList();
+          Playlist currentPlaylist = 
+              (Playlist)playlistSelector_.getSelectedItem();
+          for (PlaylistEntry playlistEntry : selectedEntries) {
+            // TODO: mark playlist as dirty
+            currentPlaylist.remove(playlistEntry);
+            playlistEntriesModel_.removeElement(playlistEntry);
+          }
+        }
+      });
+
+    // TODO: add context menu to delete entries
 
     int column = 0;
 
@@ -290,7 +330,9 @@ public class Playlists extends JPanel
         for (File playlist : playlists) {
           addPlaylist(new Playlist(playlist.toPath()));
         }
-        playlistSelector_.setSelectedIndex(0);
+        if (playlists.length > 0) {
+          playlistSelector_.setSelectedIndex(0);
+        }
       } catch (IOException e) {
         // TODO: error
         System.err.println("Error creating Playlist: " + e);

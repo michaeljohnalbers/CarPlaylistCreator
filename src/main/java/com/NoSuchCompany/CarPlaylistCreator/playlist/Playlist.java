@@ -28,6 +28,18 @@ public class Playlist implements Comparable<Playlist> {
     readPlaylist();
   }
 
+  /**
+   * Adds the given playlist entry at the given position. Essentially a wrapper
+   * around {@link java.util.List#add(int, T)}.
+   *
+   * @param index index at which to insert entry
+   * @param entry playlist entry to add
+   * @throws see {@link java.util.List#add(int, T)}
+   */
+  public void add(int index, PlaylistEntry entry) {
+    entries_.add(index, entry);
+  }
+
   @Override
   public int compareTo(Playlist other) {
     int compare = 0;
@@ -94,6 +106,22 @@ public class Playlist implements Comparable<Playlist> {
     else {
       // Playlist file doesn't exist, must be creating a new playlist.
     }
+  }
+
+  /**
+   * See {@link java.util.List#Remove(T)}.
+   */
+  public void remove(PlaylistEntry entry) {
+    entries_.remove(entry);
+  }
+
+  /**
+   * Returns the number of entries in the playlist.
+   *
+   * @return the number of entries in the playlist.
+   */
+  public int size() {
+    return entries_.size();
   }
 
   /**
