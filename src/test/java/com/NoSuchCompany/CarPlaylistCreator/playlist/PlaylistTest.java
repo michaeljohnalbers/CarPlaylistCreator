@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,6 +41,7 @@ public class PlaylistTest
     Playlist playlist = new Playlist(file);
     List<PlaylistEntry> entries = playlist.getList();
     assertEquals(2, entries.size());
+    assertEquals(2, playlist.size());
     assertTrue(lines.get(1), 
                lines.get(1).equals(entries.get(0).getCommentLine()));
     assertTrue(lines.get(2), 
@@ -62,6 +64,19 @@ public class PlaylistTest
 
     assertTrue(playlist.toString(), 
                playlist.toString().equals(file.toFile().getName()));
+
+    // Test adding an entry
+    PlaylistEntry newEntry = new PlaylistEntry("Comment line", "File name");
+    playlist.add(2, newEntry);
+    assertEquals(3, playlist.size());
+    assertEquals(newEntry, entries.get(2));
+
+    // Test removing an entry
+    playlist.remove(newEntry);
+    assertEquals(2, playlist.size());
+    for (int ii = 0; ii < entries.size(); ++ii) {
+      assertThat("entry " + ii, newEntry, is(not(entries.get(ii))));
+    }
 
     // Test that a non-existant playlist can be used (creating a new playlist).
     // No assert*, just letting JUnit handle exception (which is a failure)
