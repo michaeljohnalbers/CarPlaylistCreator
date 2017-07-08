@@ -6,6 +6,7 @@
 package com.NoSuchCompany.CarPlaylistCreator.ui;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.Arrays;
 import javax.swing.tree.TreeModel;
 
@@ -28,6 +29,13 @@ public class FileTreeModel implements TreeModel {
       return !isDirectory();
     }
     
+    @Override
+    public File[] listFiles(FileFilter filter) {
+      File[] files = super.listFiles(filter);
+      Arrays.sort(files);
+      return files;
+    }
+
     @Override
     public String toString() {
       return getName();
@@ -92,7 +100,8 @@ public class FileTreeModel implements TreeModel {
   private FileNode root_;
 
   /** File filter to only display directories and music files. */
-  final java.io.FileFilter filter_ = (file) -> {
-    return file.isDirectory() || file.getName().matches("^.*mp3");
+  final FileFilter filter_ = (file) -> {
+    return file.isDirectory() || file.getName().matches("^.*mp3") 
+    || file.getName().matches("^.*m4a");
   };
 }
