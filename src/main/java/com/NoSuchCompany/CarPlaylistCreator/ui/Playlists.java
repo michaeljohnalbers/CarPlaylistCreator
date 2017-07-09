@@ -379,9 +379,13 @@ public class Playlists extends JPanel
 
     Playlist selectedPlaylist = (Playlist)playlistSelector_.getSelectedItem();
 
-    List<PlaylistEntry> playlistEntries = selectedPlaylist.getList();
-    for (PlaylistEntry playlistEntry : playlistEntries) {
-      playlistEntriesModel_.addElement(playlistEntry);
+    // This will be null when the directory is changed. When removeAllItems it
+    // causes the PLAYLIST_SELECTED event to be fired.
+    if (null != selectedPlaylist) {
+      List<PlaylistEntry> playlistEntries = selectedPlaylist.getList();
+      for (PlaylistEntry playlistEntry : playlistEntries) {
+        playlistEntriesModel_.addElement(playlistEntry);
+      }
     }
   }
 
