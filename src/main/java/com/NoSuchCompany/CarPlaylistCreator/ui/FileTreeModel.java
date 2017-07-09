@@ -10,6 +10,8 @@ import java.io.FileFilter;
 import java.util.Arrays;
 import javax.swing.tree.TreeModel;
 
+import com.NoSuchCompany.CarPlaylistCreator.file.Metadata;
+
 /**
  * Tree model for buliding file trees. Taken from:
  * https://dzone.com/articles/taking-new-swing-tree-table-a-
@@ -38,7 +40,16 @@ public class FileTreeModel implements TreeModel {
 
     @Override
     public String toString() {
-      return getName();
+      String string = getName();
+      if (isLeaf()) {
+        try {
+          Metadata metadata = new Metadata(this);
+          string = metadata.getTitle();
+        }
+        catch (Exception e) {
+        }
+      }
+      return string;
     }
   }
 

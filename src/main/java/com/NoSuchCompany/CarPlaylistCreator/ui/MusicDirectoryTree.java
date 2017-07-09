@@ -68,8 +68,9 @@ class MusicDirectoryTree extends JPanel implements DirectoryChangeListener {
                 int numComponents = selection.getPathCount();
                 String[] pathComponents = new String[numComponents];
                 for (int ii = 0; ii < numComponents; ++ii) {
-                  pathComponents[ii] = 
-                      selection.getPathComponent(ii).toString();
+                  FileTreeModel.FileNode node = 
+                      (FileTreeModel.FileNode) selection.getPathComponent(ii);
+                  pathComponents[ii] = node.getName();
                 }
                 Path relativePath = Paths.get("..", pathComponents);
                 Path fullPath = Paths.get(musicPath_.toString(), 

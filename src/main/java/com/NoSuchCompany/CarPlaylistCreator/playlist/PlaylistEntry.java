@@ -22,6 +22,13 @@ public class PlaylistEntry {
   public PlaylistEntry(String commentLine, String trackLocation) {
     commentLine_ = commentLine;
     trackLocation_ = trackLocation;
+    prettyFormat_ = new File(getTrackLocation()).getName();
+    if (commentLine_ != null) {
+      String[] commentParts = commentLine.split(",");
+      if (commentParts.length >= 2) {
+        prettyFormat_ = commentParts[1];
+      }
+    }
     id_ = ++idGenerator;
   }
 
@@ -66,11 +73,15 @@ public class PlaylistEntry {
    */
   @Override
   public String toString() {
-    return new File(getTrackLocation()).getName();
+    return prettyFormat_;
   }
 
   /** Extended playlist directive. */
   private String commentLine_;
+
+  /** Pretty print of the track for display. */
+  private String prettyFormat_;
+
   /** Path to the track.*/
   private String trackLocation_;
 
