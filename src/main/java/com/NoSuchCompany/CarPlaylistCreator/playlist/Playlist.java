@@ -60,6 +60,15 @@ public class Playlist implements Comparable<Playlist> {
   }
 
   /**
+   * Returns the playlist file.
+   *
+   * @return playlist file
+   */
+  public Path getFile() {
+    return playlistFile_;
+  }
+
+  /**
    * Returns all playlist entries, in order.
    * @return playlist entries
    */

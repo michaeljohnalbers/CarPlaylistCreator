@@ -54,6 +54,7 @@ public class Playlists extends JPanel
     // https://docs.oracle.com/javase/tutorial/uiswing/dnd/intro.html
     // https://docs.oracle.com/javase/tutorial/uiswing/examples/dnd/BasicDnDProject/src/dnd/BasicDnD.java
 
+    playlistSelector_.setMaximumRowCount(25); // Arbitrary number
     playlistSelector_.addActionListener(this);
     playlistSelector_.setActionCommand(PLAYLIST_SELECTED);
 
@@ -352,21 +353,43 @@ public class Playlists extends JPanel
     String playlistName = JOptionPane.showInputDialog(
         this, "Enter playlist name (with or without .m3u extension):",
         "New Playlist", JOptionPane.PLAIN_MESSAGE);
-    if (null != playlistName && playlistName.length() > 0) {
+    if (null != playlistName && playlistName.length() > 0 && 
+        playlistName.indexOf('/') == -1) {
+
       if (! playlistName.matches("^.*m3u$")) {
         playlistName += ".m3u";
       }
 
       Path playlistPath = Paths.get(playlistDirectory.toString(), playlistName);
 
-      try {
-        addPlaylist(new Playlist(playlistPath));
+      int numberPlaylists = playlistSelector_.getItemCount();
+      Playlist foundPlaylist = null;
+      for (int ii = 0; ii < numberPlaylists; ++ii) {
+        Playlist playlist = playlistSelector_.getItemAt(ii);
+        if (playlist.getFile().equals(playlistPath)) {
+          foundPlaylist = playlist;
+          break;
+        }
       }
-      catch (IOException e) {
-        // TODO: error
-        System.err.println("Error creating new playlist '" + playlistPath + 
-                           "': " + e);
+
+      if (null != foundPlaylist) {
+        playlistSelector_.setSelectedItem(foundPlaylist);
       }
+      else {
+        try {
+          addPlaylist(new Playlist(playlistPath));
+        }
+        catch (IOException e) {
+          // TODO: error
+          System.err.println("Error creating new playlist '" + playlistPath + 
+                             "': " + e);
+        }
+      }
+    }
+    else {
+      // TODO: error
+      System.err.println("Error creating new playlist '" + playlistName + 
+                         "'. Must be non-empty and cannot contain a '/'.");
     }
   }
 
