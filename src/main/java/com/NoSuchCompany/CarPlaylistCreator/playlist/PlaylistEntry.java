@@ -24,8 +24,9 @@ public class PlaylistEntry {
     trackLocation_ = trackLocation;
     prettyFormat_ = new File(getTrackLocation()).getName();
     if (commentLine_ != null) {
-      String[] commentParts = commentLine.split(",");
-      if (commentParts.length >= 2) {
+      // 'Blood, Sweat & Tears' is why there is a limit here.
+      String[] commentParts = commentLine.split(",", 2);
+      if (commentParts.length == 2) {
         prettyFormat_ = commentParts[1];
       }
     }

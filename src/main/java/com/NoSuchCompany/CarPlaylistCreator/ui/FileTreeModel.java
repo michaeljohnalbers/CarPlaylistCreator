@@ -8,6 +8,7 @@ package com.NoSuchCompany.CarPlaylistCreator.ui;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
+import java.util.Comparator;
 import javax.swing.tree.TreeModel;
 
 import com.NoSuchCompany.CarPlaylistCreator.file.Metadata;
@@ -34,7 +35,12 @@ public class FileTreeModel implements TreeModel {
     @Override
     public File[] listFiles(FileFilter filter) {
       File[] files = super.listFiles(filter);
-      Arrays.sort(files);
+      Arrays.sort(files, new Comparator<File>() {
+          @Override
+          public int compare(final File lhs, final File rhs) {
+            return lhs.toString().compareToIgnoreCase(rhs.toString());
+          }
+        });
       return files;
     }
 

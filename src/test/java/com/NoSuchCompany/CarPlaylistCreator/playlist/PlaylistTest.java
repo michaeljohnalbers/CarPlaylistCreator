@@ -38,7 +38,10 @@ public class PlaylistTest
         "../File2.mp3");
     Files.write(file, lines);
 
+
     Playlist playlist = new Playlist(file);
+    assertEquals(playlist.getFile(), file);
+
     List<PlaylistEntry> entries = playlist.getList();
     assertEquals(2, entries.size());
     assertEquals(2, playlist.size());
